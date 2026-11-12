@@ -1,0 +1,23 @@
+services:
+  story-tts-mvp:
+    image: python:3.10-slim
+    container_name: story-tts-mvp
+    restart: unless-stopped
+    ports:
+      - "8765:8000"
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      DAILY_CHARACTER_LIMIT: ${DAILY_CHARACTER_LIMIT:-3000}
+      USAGE_DB: /data/usage.sqlite3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./index.html:/srv/index.html:ro
+      - ./admin.html:/srv/admin.html:ro
+      - ./web_proxy.py:/srv/web_proxy.py:ro
+      - ./assets:/srv/assets:ro
+      - ./yaf:/srv/yaf:ro
+      - ./data:/data
+    command: ["python", "/srv/web_proxy.py"]

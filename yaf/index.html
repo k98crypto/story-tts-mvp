@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f2ec">
+  <meta name="description" content="把自己的小说带在身边，随时继续听。">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/assets/bookmark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css?v=20261029-mobile-audio-settings-300">
+  <title>YAF · 听书</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="YAF 听书首页">
+      <span class="brand-mark" aria-hidden="true">Y</span>
+      <span><strong>YAF</strong><small>听书</small></span>
+    </a>
+    <div class="topbar-actions">
+      <div class="service-state" id="serviceState"><i></i><span>连接语音服务</span></div>
+      <button class="icon-button install-button" id="installButton" type="button" title="安装到设备" aria-label="安装到设备" hidden>⇩</button>
+      <button class="icon-button mobile-settings-button" id="mobileSettingsButton" type="button" title="朗读设置" aria-label="朗读设置" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><path d="M13 4v6M7 14v6"/></svg></button>
+      <button class="account-button" id="accountButton" type="button">登录</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="library-pane" aria-label="书架">
+      <div class="library-heading">
+        <div><span class="eyebrow">YOUR LIBRARY</span><h1>书架</h1><small class="library-save-status" id="librarySaveStatus">仅保存在此设备</small></div>
+        <label class="icon-button add-book" for="bookFile" title="导入小说" aria-label="导入小说">＋</label>
+        <input id="bookFile" type="file" accept=".txt,.md,.epub,text/plain,text/markdown,application/epub+zip" hidden>
+      </div>
+      <div class="library-filter" role="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="bookSearch" type="search" placeholder="搜索书名" aria-label="搜索书名">
+      </div>
+      <div class="book-list" id="bookList"></div>
+      <div class="library-footer"><span id="bookCount">0 本书</span><button class="text-button" id="clearLibraryButton" type="button">清空书架</button></div>
+    </aside>
+
+    <section class="reader-pane" aria-label="小说阅读器">
+      <div class="reader-toolbar">
+        <div class="breadcrumb"><span>书架</span><span class="crumb-divider">/</span><span id="currentBookCrumb">未选择小说</span></div>
+        <div class="reader-actions">
+          <label class="button button-secondary" for="bookFile">导入小说</label>
+          <button class="icon-button" id="removeBookButton" type="button" title="从书架移除" aria-label="从书架移除" disabled>⌫</button>
+        </div>
+      </div>
+
+      <div class="empty-reader" id="emptyReader">
+        <div class="empty-mark" aria-hidden="true">Y</div>
+        <h2>把故事放进书架</h2>
+        <p>导入 TXT、Markdown 或 EPUB 小说。书籍和听读进度仅保存在当前设备。</p>
+        <label class="button button-primary" for="bookFile">选择小说文件</label>
+      </div>
+
+      <div class="book-reader" id="bookReader" hidden>
+        <div class="book-heading">
+          <div class="book-title-block">
+            <span class="eyebrow" id="chapterCounter">正在收听</span>
+            <h2 id="bookTitle">小说标题</h2>
+            <div class="chapter-select-row">
+              <label for="chapterSelect">当前章节</label>
+              <select id="chapterSelect"></select>
+              <span class="book-progress-label" id="bookProgressLabel">0%</span>
+            </div>
+          </div>
+          <div class="book-art" aria-hidden="true"><img id="bookCover" src="/assets/cover.webp" alt=""></div>
+        </div>
+
+        <div class="chapter-progress"><div id="chapterProgressFill"></div></div>
+        <div class="reading-playback-bar" id="readingPlaybackBar" hidden>
+          <span class="reading-playback-status" id="readingPlaybackStatus">朗读位置与阅读位置不同</span>
+          <div class="reading-playback-actions">
+            <button class="text-button" id="readingPauseButton" type="button">暂停</button>
+            <button class="text-button" id="readFromHereButton" type="button">从本页开始听</button>
+            <button class="text-button" id="returnToSpeechButton" type="button">回到朗读处</button>
+          </div>
+        </div>
+        <article class="text-page" id="textPage" aria-live="polite"></article>
+        <div class="page-nav">
+          <button class="text-button" id="previousChapterButton" type="button">← 上一章</button>
+          <span id="pagePosition">导入小说后开始</span>
+          <button class="text-button" id="nextChapterButton" type="button">下一章 →</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="toc-pane" id="tocPane" aria-label="播放设置">
+      <div class="mobile-settings-heading"><strong>朗读设置</strong><button class="icon-button" id="settingsCloseButton" type="button" title="关闭设置" aria-label="关闭设置">×</button></div>
+      <section class="settings-section">
+        <div class="section-heading"><span class="eyebrow">VOICE</span><h2>朗读设置</h2></div>
+        <label class="field-label" for="voiceSelect">音色</label>
+        <select id="voiceSelect" class="full-select">
+          <option value="Vivian">Vivian · 清晰温柔</option>
+          <option value="Serena">Serena · 柔和舒缓</option>
+          <option value="Uncle_Fu">Uncle Fu · 沉稳</option>
+          <option value="Dylan">Dylan · 青年男声</option>
+          <option value="Eric">Eric · 低沉</option>
+        </select>
+        <label class="field-label rate-label" for="speedRange">语速 <output id="speedValue">1.00×</output></label>
+        <input id="speedRange" class="range-input" type="range" min="0.7" max="1.3" step="0.05" value="1">
+        <label class="field-label timer-label" for="sleepTimer">定时停止</label>
+        <select id="sleepTimer" class="full-select">
+          <option value="0">关闭</option>
+          <option value="15">15 分钟</option>
+          <option value="30">30 分钟</option>
+          <option value="45">45 分钟</option>
+          <option value="chapter">本章结束</option>
+        </select>
+      </section>
+
+      <section class="now-playing-section">
+        <span class="eyebrow">NOW PLAYING</span>
+        <div class="now-playing-title" id="nowPlayingTitle">还没有开始播放</div>
+        <p id="playbackStatus">导入小说后，选择章节开始听</p>
+      </section>
+      <div class="account-note" id="accountNote">登录后使用服务器 AI 语音。小说正文不会上传保存。</div>
+    </aside>
+  </main>
+
+  <footer class="player" aria-label="播放器">
+    <div class="player-progress">
+      <span id="positionLabel">--:--</span>
+      <input id="positionRange" type="range" min="0" max="0" value="0" aria-label="小说进度">
+      <span id="durationLabel">--:--</span>
+    </div>
+    <div class="player-main">
+      <div class="track-info"><span id="playerBookTitle">YAF 听书</span><small id="playerChapterTitle">选择一本小说开始</small></div>
+      <div class="transport-controls">
+        <button class="transport-button" id="previousParagraphButton" type="button" title="上一段" aria-label="上一段">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z"/><path d="M3 20V4"/></svg>
+        </button>
+        <button class="play-button" id="playButton" type="button" title="播放" aria-label="播放" aria-pressed="false">
+          <svg class="play-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
+          <svg class="pause-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></svg>
+        </button>
+        <button class="transport-button" id="nextParagraphButton" type="button" title="下一段" aria-label="下一段">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4v16"/><path d="M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z"/></svg>
+        </button>
+        <button class="transport-button stop-button" id="stopButton" type="button" title="停止" aria-label="停止">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+        </button>
+      </div>
+      <div class="player-options"><span id="playState">待播放</span><span class="option-divider"></span><span id="playerRate">1.00×</span></div>
+    </div>
+  </footer>
+
+  <dialog class="auth-dialog" id="authDialog">
+    <form method="dialog" class="dialog-close-row"><button class="icon-button" aria-label="关闭">×</button></form>
+    <div class="auth-content">
+      <span class="eyebrow">SPIRITWAVE VOICE</span>
+      <h2 id="authTitle">登录后开始听</h2>
+      <p class="auth-description" id="authDescription">使用听书服务器的本地账号，调用服务器上的 AI 语音。</p>
+      <label class="field-label" for="authEmail">邮箱</label>
+      <input class="auth-input" id="authEmail" type="email" autocomplete="email" required>
+      <label class="field-label" for="authPassword">密码</label>
+      <input class="auth-input" id="authPassword" type="password" autocomplete="current-password" required>
+      <button class="button button-primary auth-submit" id="authSubmit" type="button">登录</button>
+      <div class="auth-bottom"><button class="text-button" id="authModeButton" type="button">创建账号</button><button class="text-button" id="forgotPasswordButton" type="button">忘记密码</button></div>
+      <p class="auth-message" id="authMessage" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/vendor/zip.min.js?v=2.24.0" defer></script>
+  <script src="/app.js?v=20261029-mobile-audio-settings-300" defer></script>
+</body>
+</html>

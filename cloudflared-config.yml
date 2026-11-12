@@ -1,0 +1,23 @@
+tunnel: homeserver
+credentials-file: /home/bonjour/.cloudflared/f30e3a3e-8078-4e34-9d97-e425b5c19c09.json
+protocol: http2
+ingress:
+  - hostname: ai.spiritwave.dpdns.org
+    service: http://127.0.0.1:3000
+  - hostname: code.spiritwave.dpdns.org
+    service: http://127.0.0.1:8080
+  - hostname: ssh.spiritwave.dpdns.org
+    service: ssh://127.0.0.1:2222
+  - hostname: docker.spiritwave.dpdns.org
+    service: http://127.0.0.1:9000
+  - hostname: monitor.spiritwave.dpdns.org
+    service: http://127.0.0.1:19999
+  - hostname: api.spiritwave.dpdns.org
+    service: http://127.0.0.1:11440
+  - hostname: fabe.spiritwave.dpdns.org
+    service: http://localhost:8090
+  - hostname: dl.spiritwave.dpdns.org
+    service: http://127.0.0.1:8899
+  - hostname: tts.spiritwave.dpdns.org
+    service: http://127.0.0.1:8765
+  - service: http_status:404

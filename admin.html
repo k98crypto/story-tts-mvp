@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f6">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/spiritwave-icon-32.png">
+  <title>SpiritWave | 管理</title>
+  <style>
+    :root { color-scheme: light; --paper:#f5f7f6; --surface:#fff; --ink:#1d2928; --muted:#697775; --line:#dce4e1; --green:#147d70; --green-dark:#0e6259; --coral:#b54f39; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:14px/1.5 Inter,"Segoe UI","Microsoft YaHei",sans-serif; }
+    button,input { font:inherit; }
+    button,a { cursor:pointer; }
+    .topbar { min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 24px; background:var(--surface); border-bottom:1px solid var(--line); }
+    .brand { font-weight:700; }
+    .top-actions { display:flex; align-items:center; gap:14px; color:var(--muted); font-size:12px; }
+    a { color:var(--green-dark); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    main { width:min(1120px,calc(100% - 40px)); margin:26px auto 60px; }
+    .heading { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:22px; }
+    h1 { margin:0; font-size:24px; line-height:1.2; }
+    h2 { margin:0; font-size:15px; }
+    .muted { color:var(--muted); }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
+    .metric { min-height:84px; padding:14px 18px; border-right:1px solid var(--line); }
+    .metric:last-child { border-right:0; }
+    .metric-label { color:var(--muted); font-size:12px; }
+    .metric-value { margin-top:5px; font-size:21px; font-variant-numeric:tabular-nums; font-weight:700; }
+    .section { margin-top:26px; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .limit-form { display:flex; align-items:end; flex-wrap:wrap; gap:10px; padding:14px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .field { display:grid; gap:4px; color:var(--muted); font-size:12px; }
+    input { width:180px; height:38px; padding:0 10px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:var(--surface); }
+    button,.button { min-height:36px; display:inline-flex; align-items:center; justify-content:center; padding:0 12px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:var(--surface); font-weight:600; text-decoration:none; }
+    button:hover,.button:hover { border-color:#a8bbb5; }
+    button.primary { color:#fff; border-color:var(--green); background:var(--green); }
+    button.danger { color:var(--coral); }
+    button:disabled { opacity:.5; cursor:wait; }
+    .notice { min-height:20px; margin:10px 0; color:var(--muted); font-size:12px; }
+    .notice.error { color:var(--coral); }
+    .table-wrap { overflow:auto; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--surface); }
+    table { width:100%; border-collapse:collapse; text-align:left; }
+    th,td { padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    th { color:var(--muted); font-size:12px; font-weight:600; white-space:nowrap; }
+    td { font-size:13px; }
+    tbody tr:last-child td { border-bottom:0; }
+    .user-id { min-width:210px; font-family:ui-monospace,Consolas,monospace; font-size:11px; overflow-wrap:anywhere; }
+    .state-blocked { color:var(--coral); font-weight:600; }
+    .empty { padding:24px 12px; color:var(--muted); text-align:center; }
+    @media(max-width:700px) {
+      .topbar { padding:8px 16px; }
+      main { width:calc(100% - 28px); margin-top:20px; }
+      .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .metric:nth-child(2) { border-right:0; }
+      .metric:nth-child(-n+2) { border-bottom:1px solid var(--line); }
+      .heading { align-items:start; flex-direction:column; }
+      .top-actions { gap:8px; }
+      input { width:min(100%,240px); }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">SpiritWave · TTS 管理</div>
+    <div class="top-actions"><span id="adminEmail"></span><a href="/">返回配音</a></div>
+  </header>
+  <main>
+    <div class="heading">
+      <div><h1>服务管理</h1><div class="muted" id="todayLabel">正在验证管理员身份</div></div>
+      <button id="refreshButton" type="button">刷新</button>
+    </div>
+    <p class="notice" id="notice" role="status" aria-live="polite"></p>
+    <section class="metrics" aria-label="服务概览">
+      <div class="metric"><div class="metric-label">今日合成字符</div><div class="metric-value" id="todayCharacters">—</div></div>
+      <div class="metric"><div class="metric-label">今日活跃账号</div><div class="metric-value" id="activeUsers">—</div></div>
+      <div class="metric"><div class="metric-label">有合成记录账号</div><div class="metric-value" id="knownUsers">—</div></div>
+      <div class="metric"><div class="metric-label">TTS 服务</div><div class="metric-value" id="ttsStatus">检查中</div></div>
+    </section>
+    <section class="section" aria-labelledby="limitHeading">
+      <div class="section-head"><h2 id="limitHeading">每日合成上限</h2><span class="muted">按每个账号分别计数，设为 0 可暂停新合成</span></div>
+      <form class="limit-form" id="limitForm">
+        <label class="field" for="dailyLimit">每账号字符数<input id="dailyLimit" type="number" min="0" max="1000000" step="100" required></label>
+        <button class="primary" id="saveLimit" type="submit">保存上限</button>
+        <span class="muted" id="blockedCount"></span>
+      </form>
+    </section>
+    <section class="section" aria-labelledby="usersHeading">
+      <div class="section-head"><h2 id="usersHeading">TTS 使用账号</h2><span class="muted">仅显示有合成记录的账号，不读取剧本文本或邮箱</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>账号 ID</th><th>今日字符</th><th>累计字符</th><th>最近使用</th><th>合成权限</th><th>操作</th></tr></thead>
+          <tbody id="userRows"><tr><td class="empty" colspan="6">正在加载</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script>
+    const token = sessionStorage.getItem('spiritwave.accessToken') || '';
+    const notice = document.getElementById('notice');
+    const numberFormat = new Intl.NumberFormat('zh-CN');
+
+    function setNotice(message, error = false) {
+      notice.textContent = message;
+      notice.classList.toggle('error', error);
+    }
+
+    async function api(path, options = {}) {
+      const headers = {Authorization:`Bearer ${token}`, ...(options.headers || {})};
+      if (options.body) headers['Content-Type'] = 'application/json';
+      const response = await fetch(path, {...options, headers, cache:'no-store'});
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || `请求失败 (${response.status})`);
+      return result;
+    }
+
+    function renderUsers(users) {
+      const body = document.getElementById('userRows');
+      body.replaceChildren();
+      if (!users.length) {
+        const row = body.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 6;
+        cell.className = 'empty';
+        cell.textContent = '还没有账号使用过 TTS';
+        return;
+      }
+      for (const user of users) {
+        const row = body.insertRow();
+        const idCell = row.insertCell();
+        idCell.className = 'user-id';
+        idCell.textContent = user.user_id;
+        row.insertCell().textContent = numberFormat.format(user.today_characters || 0);
+        row.insertCell().textContent = numberFormat.format(user.total_characters || 0);
+        row.insertCell().textContent = user.last_active_day || '—';
+        const state = row.insertCell();
+        state.textContent = user.blocked ? '已封禁' : '正常';
+        if (user.blocked) state.className = 'state-blocked';
+        const actionCell = row.insertCell();
+        const action = document.createElement('button');
+        action.type = 'button';
+        action.textContent = user.blocked ? '解除封禁' : '封禁合成';
+        action.className = user.blocked ? '' : 'danger';
+        action.addEventListener('click', async () => {
+          action.disabled = true;
+          try {
+            const mode = user.blocked ? 'unblock' : 'block';
+            await api(`/admin/api/users/${encodeURIComponent(user.user_id)}/${mode}`, {
+              method:'POST',
+              ...(mode === 'block' ? {body:JSON.stringify({reason:'管理员操作'})} : {}),
+            });
+            setNotice(user.blocked ? '已恢复该账号的 TTS 合成权限。' : '已封禁该账号的 TTS 合成权限。');
+            await refresh();
+          } catch (error) {
+            setNotice(error.message, true);
+            action.disabled = false;
+          }
+        });
+        actionCell.append(action);
+      }
+    }
+
+    async function refresh() {
+      setNotice('正在刷新…');
+      try {
+        const [overview, userData, health] = await Promise.all([
+          api('/admin/api/overview'),
+          api('/admin/api/users'),
+          fetch('/health', {cache:'no-store'}),
+        ]);
+        document.getElementById('todayLabel').textContent = `统计日期：${overview.date}`;
+        document.getElementById('todayCharacters').textContent = numberFormat.format(overview.todayCharacters);
+        document.getElementById('activeUsers').textContent = numberFormat.format(overview.activeUsersToday);
+        document.getElementById('knownUsers').textContent = numberFormat.format(overview.knownUsers);
+        document.getElementById('dailyLimit').value = overview.dailyCharacterLimit;
+        document.getElementById('blockedCount').textContent = `已封禁 ${numberFormat.format(overview.blockedUsers)} 个账号`;
+        document.getElementById('ttsStatus').textContent = health.ok ? '正常' : '异常';
+        document.getElementById('ttsStatus').style.color = health.ok ? 'var(--green-dark)' : 'var(--coral)';
+        renderUsers(userData.users || []);
+        setNotice('数据已更新。');
+      } catch (error) {
+        setNotice(error.message, true);
+      }
+    }
+
+    async function initialize() {
+      if (!token) {
+        setNotice('请先登录管理员账号。', true);
+        document.getElementById('todayLabel').textContent = '未登录';
+        return;
+      }
+      try {
+        const session = await api('/session');
+        if (!session.isAdmin) throw new Error('当前账号没有管理员权限。');
+        document.getElementById('adminEmail').textContent = session.email;
+        document.getElementById('todayLabel').textContent = '已验证管理员身份';
+        await refresh();
+      } catch (error) {
+        setNotice(error.message, true);
+      }
+    }
+
+    document.getElementById('refreshButton').addEventListener('click', refresh);
+    document.getElementById('limitForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const input = document.getElementById('dailyLimit');
+      if (!input.reportValidity()) return;
+      const button = document.getElementById('saveLimit');
+      button.disabled = true;
+      try {
+        await api('/admin/api/settings/daily-limit', {
+          method:'POST', body:JSON.stringify({dailyCharacterLimit:Number(input.value)}),
+        });
+        setNotice('每日合成上限已保存。');
+        await refresh();
+      } catch (error) {
+        setNotice(error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+    initialize();
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+[Unit]
+Description=Local Qwen3-TTS API
+After=network-online.target docker.service
+Requires=docker.service
+Wants=network-online.target
+StartLimitIntervalSec=5min
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=bonjour
+Group=bonjour
+WorkingDirectory=/home/bonjour/story-tts-mvp
+Environment=QWEN_TTS_MODEL_DIR=/home/bonjour/tts-model
+Environment=HF_HUB_OFFLINE=1
+Environment=TRANSFORMERS_OFFLINE=1
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+ExecStart=/home/bonjour/qwen-tts-venv/bin/uvicorn tts_server:app --host 0.0.0.0 --port 8766 --workers 1
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

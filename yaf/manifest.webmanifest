@@ -1,0 +1,14 @@
+{
+  "id": "/",
+  "name": "YAF 听书",
+  "short_name": "YAF 听书",
+  "description": "把自己的小说带在身边，随时继续听。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f2ec",
+  "theme_color": "#f4f2ec",
+  "icons": [
+    {"src":"/assets/bookmark.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

@@ -1,0 +1,1300 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f6">
+  <link rel="icon" href="/assets/favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/spiritwave-icon-32.png?v=2">
+  <link rel="preload" as="image" href="/assets/still-life-phlox.webp" fetchpriority="high">
+  <title>SpiritWave</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f5f7f6;
+      --surface: #ffffff;
+      --ink: #1d2928;
+      --muted: #697775;
+      --line: #dce4e1;
+      --green: #147d70;
+      --green-dark: #0e6259;
+      --green-soft: #e4f2ef;
+      --coral: #c65f48;
+      --focus: #e9ac5b;
+      --radius: 7px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    button, textarea, select, input { font: inherit; }
+    button, select, input[type="file"] { cursor: pointer; }
+    button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .shell { min-height: 100vh; padding-bottom: 108px; }
+    .topbar {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      color: #fff;
+      background: var(--green);
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    .brand-name { font-size: 15px; }
+    .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    main { width: min(1180px, calc(100% - 48px)); margin: 28px auto 0; }
+    .page-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 20px; }
+    h1 { margin: 0; font-size: 24px; line-height: 1.2; font-weight: 680; }
+    .heading-actions { display: flex; gap: 8px; align-items: center; }
+    .button {
+      display: inline-flex;
+      min-height: 36px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: var(--surface);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .button:hover { border-color: #a8bbb5; background: #fbfdfc; }
+    .button-primary { color: #fff; border-color: var(--green); background: var(--green); }
+    .button-primary:hover { color: #fff; border-color: var(--green-dark); background: var(--green-dark); }
+    .button-quiet { color: var(--muted); background: transparent; }
+    .button-icon { width: 36px; min-width: 36px; padding: 0; font-size: 16px; }
+    .button:disabled { opacity: .45; cursor: not-allowed; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); gap: 22px; align-items: start; }
+    .column { min-width: 0; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    h2 { margin: 0; font-size: 15px; font-weight: 680; }
+    .section-meta { color: var(--muted); font-size: 12px; }
+    .input-area {
+      display: block;
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      padding: 14px 15px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--ink);
+      line-height: 1.7;
+    }
+    .input-area::placeholder { color: #99a5a2; }
+    .source-help { display: grid; gap: 8px; margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+    .source-help summary { width: fit-content; cursor: pointer; }
+    .source-prompt { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .source-prompt p { margin: 0; }
+    .input-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; }
+    .input-hint { color: var(--muted); font-size: 12px; }
+    .file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+    .options-line { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .progressive-options summary, .segment-more summary, .speed-more summary { width: fit-content; color: var(--muted); cursor: pointer; font-size: 12px; }
+    .progressive-options[open] .options-content { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; padding-top: 11px; }
+    .check { display: inline-flex; align-items: center; gap: 7px; color: #42514e; font-size: 13px; }
+    .check input { accent-color: var(--green); width: 15px; height: 15px; }
+    .roles { margin-top: 24px; }
+    .role-list { display: grid; gap: 8px; }
+    .role-row { display: grid; grid-template-columns: minmax(100px, .7fr) minmax(0, 1.4fr); align-items: center; gap: 12px; min-height: 46px; padding: 7px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+    .role-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+    select {
+      min-width: 0;
+      height: 34px;
+      padding: 0 28px 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background-color: #fff;
+      color: var(--ink);
+    }
+    .voice-note { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
+    .segments { display: grid; gap: 0; border-top: 1px solid var(--line); }
+    .segment {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) 36px;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      transition: background-color .15s ease;
+    }
+    .segment.active { background: var(--green-soft); }
+    .segment-index { padding-top: 7px; color: #899693; text-align: right; font-size: 11px; }
+    .segment-fields { min-width: 0; display: grid; gap: 7px; }
+    .segment-tools { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .segment-tools select { height: 30px; font-size: 12px; }
+    .segment-type { color: #4e605c; }
+    .stage-note { color: var(--muted); font-size: 12px; }
+    .emotion { max-width: 105px; }
+    .skip-check { margin-left: auto; }
+    .segment-more { display: grid; gap: 10px; padding: 3px 0 0; }
+    .segment-more[open] summary { margin-bottom: 2px; }
+    .segment-advanced { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .segment-direction { width: 100%; min-height: 38px; resize: vertical; padding: 7px 9px; border: 1px solid var(--line); border-radius: 5px; }
+    .segment-text {
+      width: 100%;
+      min-height: 45px;
+      resize: vertical;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: rgba(255,255,255,.72);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    .segment-text:focus { border-color: #a5c9c0; background: #fff; outline: none; }
+    .segment-remove { align-self: start; margin-top: 2px; color: #87928f; border-color: transparent; background: transparent; }
+    .segment-remove:hover { color: var(--coral); border-color: #efd6d0; background: #fff9f7; }
+    .empty-state { padding: 30px 14px; color: var(--muted); text-align: center; border: 1px dashed #cbd6d2; border-radius: var(--radius); }
+    .empty-state strong { display: block; margin-bottom: 4px; color: #465652; font-weight: 600; }
+    .player {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 5;
+      padding: 12px 24px 14px;
+      background: rgba(255,255,255,.97);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .player-inner { width: min(1180px, 100%); margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; }
+    .now-playing { min-width: 0; }
+    .now-label { color: var(--muted); font-size: 11px; }
+    .subtitle { overflow: hidden; margin-top: 2px; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .transport { display: flex; align-items: center; gap: 8px; }
+    .speed-control { justify-self: end; display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+    .speed-control input { width: 100px; accent-color: var(--green); }
+    .speed-more { position: relative; justify-self: end; color: var(--muted); font-size: 12px; }
+    .speed-more .speed-control { position: absolute; right: 0; bottom: 25px; padding: 10px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+    .privacy-note { margin-top: 9px; color: #86918e; text-align: center; font-size: 11px; }
+    .auth-gate { position: fixed; inset: 0; z-index: 20; display: grid; grid-template-columns:minmax(300px, .92fr) minmax(360px, 1.08fr); padding:0; overflow-y:auto; background:#f7f4ef; }
+    .auth-brand { position:relative; isolation:isolate; display:flex; flex-direction:column; justify-content:space-between; min-height:100%; padding:38px; overflow:hidden; color:#fffdf5; background:#445b56; }
+    .auth-brand-spacer { height:1px; }
+    .auth-painting { position:absolute; z-index:-2; inset:-2%; background-image:url("assets/still-life-phlox.webp"),url("assets/still-life-phlox.jpg"); background-position:52% 47%; background-size:cover; animation:auth-paint-drift 32s ease-in-out infinite alternate; transition:opacity .42s ease; }
+    .auth-brand::after { position:absolute; z-index:-1; inset:0; content:""; background:linear-gradient(180deg,rgba(24,33,31,.3),rgba(24,33,31,.04) 23%,rgba(24,33,31,.08) 42%,rgba(24,33,31,.42) 66%,rgba(24,33,31,.76)); }
+    .auth-brand-top { display:flex; align-items:center; }
+    .auth-brand-name { font-family:Georgia,"Times New Roman",serif; font-size:30px; font-weight:600; }
+    .auth-art-caption { position:absolute; right:38px; bottom:110px; left:38px; max-width:480px; margin:0; transition:opacity .35s ease; }
+    .auth-art-kicker { margin:0 0 10px; color:#f2d6ab; font-size:11px; font-weight:700; text-shadow:0 1px 8px rgba(0,0,0,.65); }
+    .auth-art-title { margin:0; font-family:Georgia,"Noto Serif SC",serif; font-size:clamp(26px,3vw,40px); font-weight:500; line-height:1.3; text-shadow:0 2px 12px rgba(0,0,0,.78),0 1px 2px rgba(0,0,0,.9); }
+    .auth-art-credit { margin:12px 0 0; color:rgba(255,253,245,.9); font-size:11px; text-shadow:0 1px 7px rgba(0,0,0,.8); }
+    .auth-art-credit a { color:inherit; text-underline-offset:3px; }
+    .auth-wave { display:flex; align-items:center; gap:5px; height:54px; }
+    .auth-wave span { width:4px; height:var(--bar-height); border-radius:4px; background:var(--bar-color); transform-origin:center; animation:auth-wave 1.25s ease-in-out var(--delay) infinite alternate; }
+    .auth-stage { position:relative; display:grid; place-items:center; min-width:0; padding:32px; overflow:hidden; background:#f7f4ef; }
+    .auth-stage-brand { position:absolute; z-index:1; top:30px; left:32px; display:flex; align-items:center; gap:9px; }
+    .auth-stage-brand img { display:block; width:36px; height:34px; object-fit:contain; flex:0 0 auto; }
+    .auth-stage-brand .auth-brand-name { color:#194d48; }
+    .auth-stage::before,.auth-stage::after { position:absolute; z-index:0; width:34px; height:140px; border-radius:52% 18% 42% 12%/22% 48% 16% 54%; content:""; opacity:.2; transform:rotate(22deg); animation:auth-pigment 7.5s ease-in-out infinite alternate; }
+    .auth-stage::before { top:5%; right:8%; background:#c26049; }
+    .auth-stage::after { bottom:4%; left:6%; width:22px; height:88px; background:#bd873d; animation-delay:-4s; }
+    .auth-panel { width: min(400px, 100%); padding:0; border:0; background:transparent; }
+    .auth-title { margin: 0 0 20px; font-size: 25px; }
+    .auth-subtitle { margin:-12px 0 21px; color:var(--muted); font-size:16px; font-weight:600; }
+    .auth-fields { display: grid; gap: 12px; }
+    .auth-field { display: grid; gap: 5px; color: var(--muted); font-size: 12px; }
+    .auth-field input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #cfdad6; border-radius: 6px; color: var(--ink); background: var(--surface); }
+    .auth-field input:focus { border-color:var(--green); outline:2px solid rgba(20,125,112,.16); }
+    .password-control { position: relative; }
+    .password-control input { padding-right: 46px; }
+    .visibility-toggle { position: absolute; top: 2px; right: 3px; width: 36px; min-height: 36px; display: grid; place-items: center; padding: 0; border: 0; color: var(--muted); background: transparent; }
+    .visibility-toggle:hover { color: var(--ink); }
+    .visibility-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .auth-actions { display: grid; margin-top: 18px; }
+    .auth-options { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; font-size:12px; }
+    .remember-option { display:inline-flex; align-items:center; gap:7px; min-height:24px; color:var(--muted); cursor:pointer; }
+    .remember-option input { width:15px; height:15px; margin:0; accent-color:var(--green); }
+    .auth-switch { margin: 13px 0 0; color: var(--muted); text-align: center; font-size: 12px; }
+    .text-button { padding: 0; border: 0; color: var(--green-dark); background: transparent; font-weight: 700; }
+    .text-button:hover { text-decoration: underline; }
+    .signup-dialog { width: min(440px,calc(100% - 28px)); max-width:none; max-height:calc(100% - 28px); padding:0; overflow:auto; border:1px solid var(--line); border-radius:7px; color:var(--ink); background:var(--surface); }
+    .signup-dialog::backdrop { background:rgba(22,34,31,.45); }
+    .signup-panel { padding:24px; }
+    .signup-head { display:flex; align-items:start; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    .signup-head h2 { margin:0; font-size:20px; }
+    .signup-copy { margin:5px 0 0; color:var(--muted); font-size:12px; }
+    .signup-actions { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:16px; }
+    .auth-message { min-height: 20px; margin: 12px 0 0; color: var(--muted); font-size: 12px; }
+    .auth-message[data-error="true"] { color: var(--coral); }
+    .account-controls { display: flex; align-items: center; gap: 10px; }
+    .account-email { max-width: 220px; overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .account-role { color: var(--green-dark); font-size: 11px; font-weight: 700; white-space: nowrap; }
+    [hidden] { display: none !important; }
+    .toast { position: fixed; right: 18px; bottom: 116px; z-index: 10; max-width: min(360px, calc(100vw - 36px)); padding: 10px 13px; border-radius: 6px; color: #fff; background: #263b37; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 820px) {
+      main { width: min(100% - 32px, 640px); margin-top: 20px; }
+      .topbar { padding: 0 16px; }
+      .layout { grid-template-columns: 1fr; gap: 26px; }
+      .input-area { min-height: 190px; }
+      .roles { margin-top: 18px; }
+      .player { padding: 10px 16px 12px; }
+      .player-inner { grid-template-columns: 1fr auto; gap: 7px 12px; }
+      .now-playing { grid-column: 1 / -1; }
+      .speed-control { grid-column: 2; grid-row: 2; }
+      .transport { grid-column: 1; grid-row: 2; }
+      .speed-control input { width: 74px; }
+      .privacy-note { display: none; }
+      .shell { padding-bottom: 120px; }
+    }
+    @media (max-width: 480px) {
+      .page-heading { align-items: start; flex-direction: column; }
+      .heading-actions { width: 100%; }
+      .heading-actions .button { flex: 1; }
+      .status-text { max-width: 135px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .account-email { max-width: 112px; }
+      .input-footer { align-items: start; flex-direction: column; }
+      .input-footer .button { width: 100%; }
+      .role-row { grid-template-columns: minmax(78px, .65fr) minmax(0, 1.35fr); gap: 8px; padding: 7px; }
+      .segment { grid-template-columns: 23px minmax(0,1fr) 32px; gap: 7px; }
+      .segment-tools { gap: 5px; }
+      .segment-tools select { max-width: 48%; }
+      .skip-check { margin-left: 0; }
+      .button-icon { width: 32px; min-width: 32px; min-height: 32px; }
+      .player-inner { gap: 7px; }
+      .transport { gap: 5px; }
+      .speed-control { gap: 5px; }
+    }
+    @keyframes auth-wave { from { transform:scaleY(.45); opacity:.74; } to { transform:scaleY(1); opacity:1; } }
+    @keyframes auth-paint-drift { from { transform:scale(1.02) translate3d(0,0,0); } to { transform:scale(1.09) translate3d(-1.1%,.7%,0); } }
+    @keyframes auth-pigment { from { translate:0 -2px; scale:.94 1; } to { translate:0 18px; scale:1.1 1; } }
+    @media (max-width: 720px) {
+      .auth-gate { position:absolute; min-height:100vh; min-height:100dvh; grid-template-columns:1fr; grid-template-rows:210px minmax(390px,1fr); }
+      .auth-brand { min-height:210px; padding:20px 24px 16px; }
+      .auth-brand-top { align-self:start; }
+      .auth-brand-name { font-size:26px; }
+      .auth-art-caption { right:88px; bottom:60px; left:24px; max-width:none; transform:none; }
+      .auth-art-kicker,.auth-art-credit { display:none; }
+      .auth-art-title { font-size:22px; }
+      .auth-wave { position:absolute; right:24px; bottom:20px; height:34px; gap:4px; }
+      .auth-wave span { width:3px; }
+      .auth-stage { place-items:start center; padding:78px 24px max(40px,env(safe-area-inset-bottom)); }
+      .auth-stage-brand { top:22px; left:24px; }
+      .auth-panel { margin:auto 0; }
+      .signup-dialog { width:calc(100% - 20px); max-height:calc(100dvh - 20px); }
+      .signup-panel { padding:20px; }
+    }
+    @media (max-width: 380px) {
+      .auth-gate { grid-template-rows:190px minmax(390px,1fr); }
+      .auth-brand { min-height:190px; padding:17px 19px 14px; }
+      .auth-brand-name { font-size:24px; }
+      .auth-art-caption { max-width:calc(100% - 64px); }
+      .auth-art-title { font-size:20px; }
+      .auth-wave { right:18px; bottom:17px; }
+      .auth-stage { padding-right:20px; padding-left:20px; }
+      .signup-panel { padding:17px; }
+      .signup-actions { grid-template-columns:1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .auth-painting,.auth-wave span,.auth-stage::before,.auth-stage::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <section class="auth-gate" id="authGate" aria-labelledby="authTitle">
+    <div class="auth-brand" aria-label="SpiritWave">
+      <div class="auth-painting" id="authPainting" role="img" aria-label="Fanny Tiedjen-Bieber 的油画《静物与福禄考》：蓝色花瓶和多彩花朵"></div>
+      <div class="auth-brand-spacer" aria-hidden="true"></div>
+      <div class="auth-art-caption"><p class="auth-art-kicker">STORIES, IN COLOR AND SOUND</p><h2 class="auth-art-title" id="authArtTitle">让故事里的每一种情绪，都有自己的声音。</h2><p class="auth-art-credit"><a id="authArtCredit" href="https://commons.wikimedia.org/wiki/File:Stillleben_mit_Flox_(Still_Life_with_Phlox).jpg" target="_blank" rel="noreferrer">《静物与福禄考》· Fanny Tiedjen-Bieber · 公共领域</a></p></div>
+      <div class="auth-wave" aria-hidden="true">
+        <span style="--bar-height:18px;--bar-color:#e8aa68;--delay:-.2s"></span><span style="--bar-height:32px;--bar-color:#d77862;--delay:-.7s"></span><span style="--bar-height:45px;--bar-color:#72b7a8;--delay:-.4s"></span><span style="--bar-height:25px;--bar-color:#e8aa68;--delay:-1s"></span><span style="--bar-height:38px;--bar-color:#d77862;--delay:-.1s"></span><span style="--bar-height:16px;--bar-color:#72b7a8;--delay:-.8s"></span><span style="--bar-height:30px;--bar-color:#e8aa68;--delay:-.5s"></span><span style="--bar-height:48px;--bar-color:#72b7a8;--delay:-.3s"></span><span style="--bar-height:24px;--bar-color:#d77862;--delay:-.9s"></span><span style="--bar-height:36px;--bar-color:#e8aa68;--delay:-.6s"></span><span style="--bar-height:17px;--bar-color:#72b7a8;--delay:-.15s"></span><span style="--bar-height:29px;--bar-color:#d77862;--delay:-.55s"></span>
+      </div>
+    </div>
+    <div class="auth-stage">
+      <div class="auth-stage-brand"><img src="/assets/spiritwave-mark.png" alt="" aria-hidden="true" width="36" height="34"><span class="auth-brand-name">SpiritWave</span></div>
+      <form class="auth-panel" id="authForm">
+        <h1 class="auth-title" id="authTitle">登录</h1>
+        <p class="auth-subtitle">继续你的故事，欢迎回来！</p>
+        <div class="auth-fields">
+          <label class="auth-field" for="authEmail">邮箱<input id="authEmail" type="email" autocomplete="email" required></label>
+          <label class="auth-field" for="authPassword">密码
+            <span class="password-control"><input id="authPassword" type="password" autocomplete="current-password" required>
+              <button class="visibility-toggle" id="toggleLoginPassword" type="button" aria-label="显示密码" title="显示密码">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </span>
+          </label>
+        </div>
+        <div class="auth-options">
+          <label class="remember-option"><input id="rememberForSevenDays" type="checkbox"><span>7 天内免登录</span></label>
+          <button class="text-button" id="openRecoveryButton" type="button">忘记密码？</button>
+        </div>
+        <div class="auth-actions"><button class="button button-primary" id="loginButton" type="button" disabled>登录</button></div>
+        <p class="auth-message" id="authMessage" role="status" aria-live="polite">正在检查账号服务</p>
+        <p class="auth-switch">还没有账号？ <button class="text-button" id="openSignupButton" type="button" disabled>注册</button></p>
+      </form>
+    </div>
+  </section>
+  <dialog class="signup-dialog" id="signupDialog" aria-labelledby="signupTitle">
+    <form class="signup-panel" id="signupForm">
+      <div class="signup-head">
+        <div><h2 id="signupTitle">注册</h2><p class="signup-copy">创建 SpiritWave 账号</p></div>
+        <button class="button button-icon" id="closeSignupButton" type="button" aria-label="关闭注册" title="关闭">×</button>
+      </div>
+      <div class="auth-fields">
+        <label class="auth-field" for="signupEmail">邮箱<input id="signupEmail" type="email" autocomplete="email" required></label>
+        <label class="auth-field" for="signupPassword">密码
+          <span class="password-control"><input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required>
+            <button class="visibility-toggle" id="toggleSignupPassword" type="button" aria-label="显示密码" title="显示密码">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </span>
+        </label>
+        <label class="auth-field" for="signupPasswordConfirm">确认密码
+          <span class="password-control"><input id="signupPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required>
+            <button class="visibility-toggle" id="toggleConfirmPassword" type="button" aria-label="显示确认密码" title="显示确认密码">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </span>
+        </label>
+      </div>
+      <div class="signup-actions">
+        <button class="button button-primary" id="signupButton" type="submit" disabled>注册</button>
+        <button class="button" id="cancelSignupButton" type="button">取消</button>
+      </div>
+      <p class="auth-message" id="signupMessage" role="status" aria-live="polite"></p>
+      <button class="text-button" id="resendSignupButton" type="button" hidden>重新发送验证邮件</button>
+    </form>
+  </dialog>
+  <dialog class="signup-dialog" id="recoveryDialog" aria-labelledby="recoveryTitle">
+    <form class="signup-panel" id="recoveryForm">
+      <div class="signup-head">
+        <div><h2 id="recoveryTitle">重置密码</h2><p class="signup-copy">输入注册邮箱，我们会发送重置链接。</p></div>
+        <button class="button button-icon" id="closeRecoveryButton" type="button" aria-label="关闭重置密码" title="关闭">×</button>
+      </div>
+      <div class="auth-fields">
+        <label class="auth-field" for="recoveryEmail">邮箱<input id="recoveryEmail" type="email" autocomplete="email" required></label>
+      </div>
+      <div class="signup-actions">
+        <button class="button button-primary" id="recoveryButton" type="submit" disabled>发送重置链接</button>
+        <button class="button" id="cancelRecoveryButton" type="button">取消</button>
+      </div>
+      <p class="auth-message" id="recoveryMessage" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
+  <dialog class="signup-dialog" id="newPasswordDialog" aria-labelledby="newPasswordTitle">
+    <form class="signup-panel" id="newPasswordForm">
+      <div class="signup-head">
+        <div><h2 id="newPasswordTitle">设置新密码</h2><p class="signup-copy">密码至少 8 位。</p></div>
+      </div>
+      <div class="auth-fields">
+        <label class="auth-field" for="newPassword">新密码<input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label class="auth-field" for="newPasswordConfirm">确认新密码<input id="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
+      </div>
+      <div class="signup-actions"><button class="button button-primary" id="saveNewPasswordButton" type="submit">保存新密码</button></div>
+      <p class="auth-message" id="newPasswordMessage" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
+  <div class="shell" id="appShell" hidden>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><span class="brand-name">SpiritWave</span></div>
+      <div class="account-controls" id="accountControls" hidden>
+        <span class="account-email" id="accountEmail"></span>
+        <span class="account-role" id="accountRole" hidden>管理员</span>
+        <a class="button button-quiet" id="adminLink" href="/admin" hidden>管理</a>
+        <button class="button button-quiet" id="logoutButton" type="button">退出</button>
+      </div>
+      <div class="status"><span class="status-dot" id="modelStatusDot" data-ready="false" aria-hidden="true"></span><span class="status-text" id="modelStatus">连接服务器模型中</span></div>
+    </header>
+    <main>
+      <div class="page-heading">
+        <div>
+          <h1>剧情配音</h1>
+        </div>
+        <div class="heading-actions">
+          <label class="button" for="fileInput">导入文本</label>
+          <input class="file-input" id="fileInput" type="file" accept=".txt,.md,text/plain,text/markdown">
+          <button class="button button-primary" id="parseButton" type="button">解析剧情</button>
+        </div>
+      </div>
+      <div class="layout">
+        <section class="column" aria-labelledby="sourceHeading">
+          <div class="section-head">
+            <h2 id="sourceHeading">剧情文本</h2>
+            <span class="section-meta" id="charCount">0 字</span>
+          </div>
+          <details class="source-help">
+            <summary>兼容工具：复制给 DeepSeek 的格式要求</summary>
+            <div class="source-prompt">
+              <p>复制后发给 DeepSeek。之后每轮剧情继续粘贴回复即可。</p>
+              <button class="button" id="copyPromptButton" type="button">复制格式要求</button>
+            </div>
+          </details>
+          <textarea id="sourceText" class="input-area" placeholder="粘贴 DeepSeek 最新回复&#10;&#10;沈砚：你真的决定要走吗？&#10;（沈砚猛地推开门，压低声音。）"></textarea>
+          <div class="input-footer">
+            <span class="input-hint">粘贴最新回复后点“解析剧情”</span>
+            <button class="button button-quiet" id="clearButton" type="button">清空文本</button>
+          </div>
+          <details class="options-line progressive-options">
+            <summary>播放选项</summary>
+            <div class="options-content">
+              <label class="check"><input id="includeNarration" type="checkbox" checked>播放旁白</label>
+              <label class="check"><input id="includeAction" type="checkbox">播放动作描写</label>
+            </div>
+          </details>
+          <section class="roles" aria-labelledby="rolesHeading">
+            <div class="section-head">
+              <h2 id="rolesHeading">角色音色</h2>
+              <span class="section-meta" id="roleCount">等待解析</span>
+            </div>
+            <div class="role-list" id="roleList"><div class="empty-state"><strong>还没有角色</strong>解析文本后，为角色选择声音</div></div>
+            <p class="voice-note" id="voiceNote">等待连接服务器模型</p>
+          </section>
+        </section>
+        <section class="column" aria-labelledby="segmentsHeading">
+          <div class="section-head">
+            <h2 id="segmentsHeading">播放片段</h2>
+            <span class="section-meta" id="segmentCount">0 段</span>
+          </div>
+          <div id="segmentList" class="segments">
+            <div class="empty-state"><strong>队列为空</strong>解析文本后，可以在播放前修正角色和内容</div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <footer class="player" id="player" aria-label="播放器" hidden>
+    <div class="player-inner">
+      <div class="now-playing">
+        <div class="now-label" id="playState">待播放</div>
+        <div class="subtitle" id="subtitle">选择解析后的片段开始播放</div>
+      </div>
+      <div class="transport">
+        <button class="button button-icon" id="playAll" type="button" title="播放全部" aria-label="播放全部">▶</button>
+        <button class="button button-icon" id="pauseButton" type="button" title="暂停或继续" aria-label="暂停或继续">Ⅱ</button>
+        <button class="button button-icon" id="stopButton" type="button" title="停止播放" aria-label="停止播放">■</button>
+      </div>
+      <details class="speed-more">
+        <summary>语速</summary>
+        <label class="speed-control" for="speedRange"><input id="speedRange" type="range" min="0.7" max="1.3" step="0.05" value="1"><span id="speedValue">1.00×</span></label>
+      </details>
+    </div>
+    <div class="privacy-note">剧本文本发送到局域网服务器合成；服务器不保存文本或生成音频</div>
+  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script>
+    const sourceText = document.getElementById('sourceText');
+    const segmentList = document.getElementById('segmentList');
+    const roleList = document.getElementById('roleList');
+    const voicesNote = document.getElementById('voiceNote');
+    const toast = document.getElementById('toast');
+    const modelStatus = document.getElementById('modelStatus');
+    const modelStatusDot = document.getElementById('modelStatusDot');
+    const ttsApiBase = window.location.origin;
+    const authGate = document.getElementById('authGate');
+    const authMessage = document.getElementById('authMessage');
+    const signupDialog = document.getElementById('signupDialog');
+    const signupMessage = document.getElementById('signupMessage');
+    const recoveryDialog = document.getElementById('recoveryDialog');
+    const recoveryMessage = document.getElementById('recoveryMessage');
+    const newPasswordDialog = document.getElementById('newPasswordDialog');
+    const newPasswordMessage = document.getElementById('newPasswordMessage');
+    let authConfig = null;
+    let authToken = '';
+    let authRefreshToken = '';
+    let currentUser = null;
+    let lastSignupEmail = '';
+    const emotionOptions = [
+      ['neutral', '平静'], ['sad', '悲伤'], ['angry', '愤怒'], ['hesitant', '迟疑'], ['whisper', '耳语'], ['joy', '喜悦']
+    ];
+    const modelVoices = [
+      ['Dylan', '青年男声'],
+      ['Uncle_Fu', '成熟男声'],
+      ['Vivian', '明亮女声'],
+      ['Serena', '温柔女声'],
+      ['Eric', '活泼男声']
+    ];
+    let segments = [];
+    let roleVoices = {};
+    let modelReady = false;
+    let queue = [];
+    let queueIndex = 0;
+    let runId = 0;
+    let requestController = null;
+    let currentAudio = null;
+    let currentAudioUrl = null;
+    let toastTimer;
+    const deepSeekFormatPrompt = `后续剧情请按以下格式输出，便于我进行角色配音：
+角色台词单独一行，格式为“角色名：台词”。不要把动作或语气说明写进引号里的台词。
+动作、神态、场景和说话方式单独放在括号中，例如：（沈砚猛地推开门，压低声音。）
+请保留角色名字，不要把角色台词和旁白混在同一段。除非剧情需要，不要添加格式说明。`;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function setAuthMessage(message, isError = false) {
+      authMessage.textContent = message;
+      authMessage.dataset.error = String(isError);
+    }
+
+    function setSignupMessage(message, isError = false) {
+      signupMessage.textContent = message;
+      signupMessage.dataset.error = String(isError);
+    }
+
+    function setRecoveryMessage(message, isError = false) {
+      recoveryMessage.textContent = message;
+      recoveryMessage.dataset.error = String(isError);
+    }
+
+    function setNewPasswordMessage(message, isError = false) {
+      newPasswordMessage.textContent = message;
+      newPasswordMessage.dataset.error = String(isError);
+    }
+
+    function togglePassword(inputId, buttonId) {
+      const input = document.getElementById(inputId);
+      const button = document.getElementById(buttonId);
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      button.setAttribute('aria-label', visible ? '隐藏密码' : '显示密码');
+      button.title = visible ? '隐藏密码' : '显示密码';
+    }
+
+    function showAuthGate(message = '') {
+      authToken = '';
+      currentUser = null;
+      sessionStorage.removeItem('spiritwave.accessToken');
+      sessionStorage.removeItem('spiritwave.refreshToken');
+      document.getElementById('appShell').hidden = true;
+      document.getElementById('player').hidden = true;
+      document.getElementById('accountControls').hidden = true;
+      authGate.hidden = false;
+      if (message) setAuthMessage(message, true);
+    }
+
+    function enterApp(user) {
+      currentUser = user;
+      document.getElementById('accountEmail').textContent = user.email || '';
+      document.getElementById('accountRole').hidden = user.isAdmin !== true;
+      document.getElementById('adminLink').hidden = user.isAdmin !== true;
+      document.getElementById('accountControls').hidden = false;
+      document.getElementById('appShell').hidden = false;
+      document.getElementById('player').hidden = false;
+      authGate.hidden = true;
+      renderRoles();
+    }
+
+    async function supabaseRequest(path, body, accessToken = '', redirectTo = '') {
+      const headers = {'Content-Type':'application/json', 'apikey':authConfig.publishableKey};
+      if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+      const url = new URL(`${authConfig.url}/auth/v1/${path}`);
+      if (redirectTo) url.searchParams.set('redirect_to', redirectTo);
+      const response = await fetch(url, {
+        method:'POST', headers, body:JSON.stringify(body), cache:'no-store'
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.msg || result.message || result.error_description || '账号服务请求失败');
+      return result;
+    }
+
+    async function verifySession(token) {
+      const response = await fetch(`${ttsApiBase}/session`, {
+        headers:{Authorization:`Bearer ${token}`}, cache:'no-store'
+      });
+      if (!response.ok) return null;
+      return response.json();
+    }
+
+    async function restoreEmailCallback() {
+      const params = new URLSearchParams(location.hash.slice(1));
+      const token = params.get('access_token');
+      const callbackError = params.get('error_description') || new URLSearchParams(location.search).get('error_description');
+      if (!token) {
+        if (callbackError) setAuthMessage(callbackError, true);
+        return false;
+      }
+      const refreshToken = params.get('refresh_token') || '';
+      const type = params.get('type') || '';
+      history.replaceState(null, '', `${location.pathname}${location.search}`);
+      const user = await verifySession(token);
+      if (!user) {
+        setAuthMessage('邮箱验证已完成，但登录会话无效，请使用邮箱和密码登录。', true);
+        return false;
+      }
+      authToken = token;
+      authRefreshToken = refreshToken;
+      sessionStorage.setItem('spiritwave.accessToken', authToken);
+      if (authRefreshToken) sessionStorage.setItem('spiritwave.refreshToken', authRefreshToken);
+      if (type === 'recovery') {
+        document.getElementById('newPasswordForm').reset();
+        setNewPasswordMessage('');
+        newPasswordDialog.showModal();
+        document.getElementById('newPassword').focus();
+        return true;
+      }
+      enterApp(user);
+      return true;
+    }
+
+    async function restoreSession() {
+      const savedToken = sessionStorage.getItem('spiritwave.accessToken');
+      const savedRefresh = sessionStorage.getItem('spiritwave.refreshToken');
+      if (savedToken) {
+        const user = await verifySession(savedToken);
+        if (user) {
+          authToken = savedToken;
+          authRefreshToken = savedRefresh || '';
+          enterApp(user);
+          return true;
+        }
+      }
+      if (savedRefresh && authConfig) {
+        try {
+          const session = await supabaseRequest('token?grant_type=refresh_token', {refresh_token:savedRefresh});
+          authToken = session.access_token;
+          authRefreshToken = session.refresh_token || savedRefresh;
+          const user = await verifySession(authToken);
+          if (user) {
+            sessionStorage.setItem('spiritwave.accessToken', authToken);
+            sessionStorage.setItem('spiritwave.refreshToken', authRefreshToken);
+            enterApp(user);
+            return true;
+          }
+        } catch {}
+      }
+      try {
+        const response = await fetch(`${ttsApiBase}/session`, {cache:'no-store', credentials:'same-origin'});
+        const session = await response.json();
+        if (response.ok && session.accessToken) {
+          authToken = session.accessToken;
+          authRefreshToken = '';
+          sessionStorage.setItem('spiritwave.accessToken', authToken);
+          sessionStorage.removeItem('spiritwave.refreshToken');
+          enterApp(session);
+          return true;
+        }
+      } catch {}
+      showAuthGate();
+      return false;
+    }
+
+    async function authenticate(mode) {
+      if (!authConfig?.ready) return;
+      const isSignup = mode === 'signup';
+      const form = document.getElementById(isSignup ? 'signupForm' : 'authForm');
+      if (!form.reportValidity()) return;
+      const email = document.getElementById(isSignup ? 'signupEmail' : 'authEmail').value.trim();
+      const passwordInput = document.getElementById(isSignup ? 'signupPassword' : 'authPassword');
+      const password = passwordInput.value;
+      if (isSignup && password !== document.getElementById('signupPasswordConfirm').value) {
+        setSignupMessage('两次输入的密码不一致。', true);
+        return;
+      }
+      const button = document.getElementById(isSignup ? 'signupButton' : 'loginButton');
+      button.disabled = true;
+      if (isSignup) setSignupMessage('正在注册…');
+      else setAuthMessage('正在登录…');
+      try {
+        if (isSignup) {
+          await supabaseRequest('signup', {email, password}, '', location.origin);
+          lastSignupEmail = email;
+          document.getElementById('resendSignupButton').hidden = false;
+          setSignupMessage('注册申请已提交。未收到邮件时，请检查垃圾邮件或重新发送。');
+          return;
+        }
+        const session = await supabaseRequest('token?grant_type=password', {email, password});
+        authToken = session.access_token;
+        authRefreshToken = session.refresh_token || '';
+        const user = await verifySession(authToken);
+        if (!user) throw new Error('账号尚未完成邮箱验证，或登录会话无效');
+        let rememberError = '';
+        try {
+          const rememberResponse = await fetch(`${ttsApiBase}/auth/remember`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json', Authorization:`Bearer ${authToken}`},
+            body:JSON.stringify({remember:document.getElementById('rememberForSevenDays').checked, refreshToken:authRefreshToken}),
+            cache:'no-store'
+          });
+          const rememberResult = await rememberResponse.json().catch(() => ({}));
+          if (!rememberResponse.ok) throw new Error(rememberResult.error || '记住登录设置失败');
+          if (rememberResult.remembered) {
+            authToken = rememberResult.accessToken || authToken;
+            authRefreshToken = '';
+          }
+        } catch (error) {
+          rememberError = error.message || '7 天免登录设置失败，本次登录仍有效。';
+          authRefreshToken = session.refresh_token || '';
+        }
+        sessionStorage.setItem('spiritwave.accessToken', authToken);
+        if (authRefreshToken) sessionStorage.setItem('spiritwave.refreshToken', authRefreshToken);
+        else sessionStorage.removeItem('spiritwave.refreshToken');
+        enterApp(user);
+        setAuthMessage('');
+        if (rememberError) showToast(rememberError);
+      } catch (error) {
+        const message = error.message || (isSignup ? '注册失败，请稍后重试。' : '登录失败，请稍后重试。');
+        if (isSignup) setSignupMessage(message, true);
+        else setAuthMessage(message.includes('Invalid login credentials')
+          ? '邮箱或密码不匹配。若之前用此邮箱注册过，重复注册不会更改旧密码，请使用“忘记密码”重设。'
+          : message, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function requestPasswordReset() {
+      const emailInput = document.getElementById('recoveryEmail');
+      if (!emailInput.reportValidity()) return;
+      const button = document.getElementById('recoveryButton');
+      button.disabled = true;
+      setRecoveryMessage('正在发送…');
+      try {
+        await supabaseRequest('recover', {email:emailInput.value.trim()}, '', location.origin);
+        setRecoveryMessage('如果该邮箱已注册，重置链接很快会发送到邮箱。');
+      } catch (error) {
+        setRecoveryMessage(error.message || '发送失败，请稍后重试。', true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function saveNewPassword() {
+      const form = document.getElementById('newPasswordForm');
+      if (!form.reportValidity()) return;
+      const password = document.getElementById('newPassword').value;
+      if (password !== document.getElementById('newPasswordConfirm').value) {
+        setNewPasswordMessage('两次输入的密码不一致。', true);
+        return;
+      }
+      const button = document.getElementById('saveNewPasswordButton');
+      button.disabled = true;
+      setNewPasswordMessage('正在更新密码…');
+      try {
+        const response = await fetch(`${authConfig.url}/auth/v1/user`, {
+          method:'PUT',
+          headers:{'Content-Type':'application/json', apikey:authConfig.publishableKey, Authorization:`Bearer ${authToken}`},
+          body:JSON.stringify({password}),
+          cache:'no-store'
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.msg || result.message || '密码更新失败，请重新申请重置链接。');
+        const user = await verifySession(authToken);
+        if (!user) throw new Error('密码已更新，请使用新密码重新登录。');
+        enterApp(user);
+        newPasswordDialog.close();
+        showToast('密码已更新');
+      } catch (error) {
+        setNewPasswordMessage(error.message || '密码更新失败，请稍后重试。', true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function initializeAuth() {
+      try {
+        const response = await fetch(`${ttsApiBase}/config`, {cache:'no-store'});
+        authConfig = await response.json();
+        authConfig = {
+          ready:response.ok && authConfig.authReady === true,
+          url:authConfig.supabaseUrl,
+          publishableKey:authConfig.publishableKey,
+        };
+        if (!authConfig.ready) {
+          setAuthMessage('账号服务尚未配置，注册与合成暂不可用。');
+          return;
+        }
+        document.getElementById('loginButton').disabled = false;
+        document.getElementById('openSignupButton').disabled = false;
+        document.getElementById('signupButton').disabled = false;
+        document.getElementById('recoveryButton').disabled = false;
+        setAuthMessage('');
+        if (await restoreEmailCallback()) return;
+        await restoreSession();
+      } catch {
+        const localPreview = ['localhost', '127.0.0.1'].includes(location.hostname);
+        setAuthMessage(localPreview ? '本地预览不提供注册和登录，请使用正式网址。' : '无法连接账号服务配置，请稍后重试。', true);
+      }
+    }
+
+    async function logout() {
+      try {
+        if (authToken && authConfig?.ready) {
+          try {
+            await fetch(`${ttsApiBase}/auth/remember`, {
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({remember:false}),
+              cache:'no-store'
+            });
+          } catch {}
+          await fetch(`${authConfig.url}/auth/v1/logout`, {
+            method:'POST',
+            headers:{'apikey':authConfig.publishableKey, Authorization:`Bearer ${authToken}`},
+          });
+        }
+      } finally {
+        stopPlayback();
+        showAuthGate('已退出登录');
+      }
+    }
+
+    async function refreshModelStatus() {
+      try {
+        const response = await fetch(`${ttsApiBase}/health`, {cache:'no-store'});
+        const health = await response.json();
+        modelReady = response.ok && health.ready === true;
+        modelStatus.textContent = modelReady ? 'Qwen3-TTS 已就绪' : 'Qwen3-TTS 正在启动';
+        modelStatusDot.dataset.ready = String(modelReady);
+        voicesNote.textContent = modelReady
+          ? '角色音色由服务器 Qwen3-TTS 提供；情绪会映射为模型语气指令。'
+          : '等待服务器模型加载完成';
+      } catch {
+        modelReady = false;
+        modelStatus.textContent = '服务器模型不可用';
+        modelStatusDot.dataset.ready = 'false';
+        voicesNote.textContent = '无法连接服务器语音服务';
+      }
+      renderRoles();
+    }
+
+    function selectedModelVoice(speaker) {
+      if (!roleVoices[speaker]) {
+        const gender = segments.find(segment => segment.speaker === speaker && segment.genderHint)?.genderHint;
+        roleVoices[speaker] = gender === 'female' ? 'Serena' : 'Dylan';
+      }
+      return roleVoices[speaker];
+    }
+
+    function parseLine(line) {
+      const text = line.trim().replace(/^[-*]\s+/, '');
+      if (!text || /^#{1,6}\s/.test(text)) return null;
+      let match = text.match(/^([^：:「『“"()（）]{1,24})[：:][\s　]*[「『“"](.+?)[」』”"]?\s*$/);
+      if (match) return { type: 'dialogue', speaker: match[1].trim(), text: match[2].trim(), emotion: 'neutral', skip: false };
+      match = text.match(/^([^：:「『“"()（）]{1,24})[：:][\s　]*(.+)$/);
+      if (match) return { type: 'dialogue', speaker: match[1].trim(), text: match[2].trim().replace(/[」』”"]$/, ''), emotion: 'neutral', skip: false };
+      if (/^[（(].+[）)]$/.test(text)) return { type: 'action', speaker: '旁白', text: text.slice(1, -1).trim(), emotion: 'neutral', skip: true };
+      return { type: 'narration', speaker: '旁白', text: text.replace(/^>\s*/, ''), emotion: 'neutral', skip: false };
+    }
+
+    function parseScript() {
+      stopPlayback();
+      const lines = sourceText.value.split(/\r?\n+/).map(parseLine).filter(Boolean);
+      const parsed = [];
+      lines.forEach((line, index) => {
+        if (line.type !== 'action') {
+          parsed.push(line);
+          return;
+        }
+        const previous = parsed.at(-1);
+        const next = lines.slice(index + 1).find(item => item.type !== 'action');
+        const target = previous?.type === 'dialogue' ? previous : next?.type === 'dialogue' ? next : null;
+        if (!target) {
+          parsed.push(line);
+          return;
+        }
+        const action = line.text;
+        const voiceDirection = action.replace(/^(他|她|對方|对方|男人|女人|男孩|女孩)?[，,。；;：:\s]*/, '')
+          .split(/[，,。；;]/).filter(part => /声音|声线|语气|语調|语调|低声|耳语|喊|吼|哭|笑|颤|顫|停顿|停頓|轻声|輕聲/.test(part)).join('，');
+        target.direction = [target.direction, voiceDirection].filter(Boolean).join('，');
+        if (!target.genderHint && /他/.test(action)) target.genderHint = 'male';
+        if (!target.genderHint && /她/.test(action)) target.genderHint = 'female';
+        target.stageDirection = [target.stageDirection, action].filter(Boolean).join('；');
+      });
+      if (!parsed.length) {
+        showToast('先粘贴剧情文本或导入文件');
+        return;
+      }
+      segments = parsed;
+      roleVoices = {};
+      renderAll();
+      showToast(`已整理 ${segments.length} 段，可继续修正角色和台词`);
+    }
+
+    function renderRoles() {
+      const names = [...new Set(segments.map(s => s.speaker).filter(Boolean))];
+      document.getElementById('roleCount').textContent = names.length ? `${names.length} 个角色` : '等待解析';
+      if (!names.length) {
+        roleList.innerHTML = '<div class="empty-state"><strong>还没有角色</strong>解析文本后，为角色选择声音</div>';
+        return;
+      }
+      roleList.innerHTML = names.map(name => {
+        const voiceHtml = modelVoices.map(([id, label]) => `<option value="${id}">${label}</option>`).join('');
+        return `<div class="role-row"><span class="role-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span><select data-role="${escapeHtml(name)}" aria-label="${escapeHtml(name)} 的音色">${voiceHtml}</select></div>`;
+      }).join('');
+      roleList.querySelectorAll('select[data-role]').forEach(select => {
+        const role = select.dataset.role;
+        select.value = selectedModelVoice(role);
+        select.addEventListener('change', () => { roleVoices[role] = select.value; });
+      });
+    }
+
+    function renderSegments() {
+      document.getElementById('segmentCount').textContent = `${segments.length} 段`;
+      if (!segments.length) {
+        segmentList.innerHTML = '<div class="empty-state"><strong>队列为空</strong>解析文本后，可以在播放前修正角色和内容</div>';
+        return;
+      }
+      const names = [...new Set(['旁白', ...segments.map(s => s.speaker).filter(Boolean)])];
+      segmentList.innerHTML = segments.map((segment, index) => {
+        const typeLabel = {dialogue:'台词', narration:'旁白', action:'动作'}[segment.type] || '台词';
+        const speakerOptions = names.map(n => `<option value="${escapeHtml(n)}" ${segment.speaker === n ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('');
+        const emotionHtml = emotionOptions.map(([key,label]) => `<option value="${key}" ${segment.emotion === key ? 'selected' : ''}>${label}</option>`).join('');
+        return `<article class="segment" data-index="${index}">
+          <span class="segment-index">${String(index + 1).padStart(2,'0')}</span>
+          <div class="segment-fields">
+            <div class="segment-tools">
+              <span class="section-meta segment-type">${typeLabel}</span>
+              <span class="role-name">${escapeHtml(segment.speaker || '旁白')}</span>
+              ${segment.stageDirection ? `<span class="stage-note">（${escapeHtml(segment.stageDirection)}）</span>` : ''}
+              ${segment.direction ? `<span class="section-meta">${escapeHtml(segment.direction)}</span>` : ''}
+            </div>
+            <textarea class="segment-text" data-field="text" aria-label="片段 ${index + 1} 文本">${escapeHtml(segment.text)}</textarea>
+            <details class="segment-more">
+              <summary>更多调整</summary>
+              <div class="segment-advanced">
+                <label>角色 <select data-field="speaker" aria-label="片段 ${index + 1} 的角色">${speakerOptions}</select></label>
+                <label>语气 <select data-field="emotion" aria-label="片段 ${index + 1} 的语气">${emotionHtml}</select></label>
+                <label class="check"><input data-field="skip" type="checkbox" ${segment.skip ? 'checked' : ''}>跳过这句</label>
+                <textarea class="segment-direction" data-field="direction" aria-label="片段 ${index + 1} 的说话方式" placeholder="说话方式，例如：压低声音、带着哭腔">${escapeHtml(segment.direction || '')}</textarea>
+              </div>
+            </details>
+          </div>
+          <button class="button button-icon segment-remove" data-action="remove" type="button" title="删除片段" aria-label="删除片段 ${index + 1}">×</button>
+        </article>`;
+      }).join('');
+
+      segmentList.querySelectorAll('.segment').forEach(row => {
+        const i = Number(row.dataset.index);
+        row.querySelector('[data-field="speaker"]').addEventListener('change', e => {
+          segments[i].speaker = e.target.value;
+          renderRoles();
+        });
+        row.querySelector('[data-field="emotion"]').addEventListener('change', e => { segments[i].emotion = e.target.value; });
+        row.querySelector('[data-field="skip"]').addEventListener('change', e => { segments[i].skip = e.target.checked; });
+        row.querySelector('[data-field="text"]').addEventListener('input', e => { segments[i].text = e.target.value; });
+        row.querySelector('[data-field="direction"]').addEventListener('input', e => { segments[i].direction = e.target.value; });
+        row.querySelector('[data-action="remove"]').addEventListener('click', () => {
+          stopPlayback();
+          segments.splice(i, 1);
+          renderAll();
+        });
+      });
+    }
+
+    function renderAll() {
+      renderRoles();
+      renderSegments();
+      document.getElementById('charCount').textContent = `${sourceText.value.length.toLocaleString()} 字`;
+    }
+
+    function allowedSegments() {
+      return segments.map((s, i) => ({...s, index:i})).filter(s => {
+        if (s.skip || !s.text.trim()) return false;
+        if (s.type === 'narration' && !document.getElementById('includeNarration').checked) return false;
+        if (s.type === 'action' && !document.getElementById('includeAction').checked) return false;
+        return true;
+      });
+    }
+
+    function setActive(index, label) {
+      segmentList.querySelectorAll('.segment').forEach(row => row.classList.toggle('active', Number(row.dataset.index) === index));
+      document.getElementById('playState').textContent = label;
+      const item = segments[index];
+      document.getElementById('subtitle').textContent = item ? `${item.speaker || '旁白'}：${item.text}` : '选择解析后的片段开始播放';
+      if (item) segmentList.querySelector(`[data-index="${index}"]`)?.scrollIntoView({block:'nearest', behavior:'smooth'});
+    }
+
+    async function speakNext(id) {
+      if (id !== runId) return;
+      if (queueIndex >= queue.length) {
+        document.getElementById('playState').textContent = '播放完成';
+        queue = [];
+        return;
+      }
+      const item = queue[queueIndex++];
+      setActive(item.index, `正在播放 ${queueIndex} / ${queue.length}`);
+      const controller = new AbortController();
+      requestController = controller;
+      try {
+        const response = await fetch(`${ttsApiBase}/synthesize`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json', Authorization:`Bearer ${authToken}`},
+          body:JSON.stringify({
+            text:item.text,
+            speaker:selectedModelVoice(item.speaker || '旁白'),
+            emotion:item.emotion,
+            direction:item.direction || ''
+          }),
+          signal:controller.signal
+        });
+        if (response.status === 401 || response.status === 403) {
+          showAuthGate('登录已失效，请重新登录。');
+          return;
+        }
+        if (!response.ok) {
+          const failure = await response.json().catch(() => ({}));
+          throw new Error(failure.error || `TTS request failed (${response.status})`);
+        }
+        const audioBlob = await response.blob();
+        if (id !== runId) return;
+        currentAudioUrl = URL.createObjectURL(audioBlob);
+        currentAudio = new Audio(currentAudioUrl);
+        currentAudio.playbackRate = Number(document.getElementById('speedRange').value);
+        currentAudio.onended = () => {
+          URL.revokeObjectURL(currentAudioUrl);
+          currentAudioUrl = null;
+          currentAudio = null;
+          speakNext(id);
+        };
+        currentAudio.onerror = () => {
+          if (id !== runId) return;
+          document.getElementById('playState').textContent = '语音播放失败';
+          showToast('生成的音频无法播放');
+        };
+        await currentAudio.play();
+      } catch (error) {
+        if (id !== runId || error.name === 'AbortError') return;
+        document.getElementById('playState').textContent = '语音播放失败';
+        showToast(error.message || '服务器语音生成失败');
+      } finally {
+        if (requestController === controller) requestController = null;
+      }
+    }
+
+    function startQueue(items) {
+      if (!authToken) {
+        showAuthGate('请先登录后再生成语音。');
+        return;
+      }
+      if (!modelReady) {
+        showToast('服务器模型尚未就绪');
+        return;
+      }
+      if (!items.length) {
+        showToast('没有可播放的片段');
+        return;
+      }
+      stopAudioOutput();
+      runId++;
+      queue = items;
+      queueIndex = 0;
+      speakNext(runId);
+    }
+
+    function stopPlayback() {
+      runId++;
+      queue = [];
+      queueIndex = 0;
+      stopAudioOutput();
+      segmentList.querySelectorAll('.segment.active').forEach(row => row.classList.remove('active'));
+      document.getElementById('playState').textContent = '待播放';
+      document.getElementById('subtitle').textContent = '选择解析后的片段开始播放';
+    }
+
+    function stopAudioOutput() {
+      requestController?.abort();
+      requestController = null;
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio = null;
+      }
+      if (currentAudioUrl) URL.revokeObjectURL(currentAudioUrl);
+      currentAudioUrl = null;
+    }
+
+    document.getElementById('authForm').addEventListener('submit', event => {
+      event.preventDefault();
+      authenticate('login');
+    });
+    document.getElementById('loginButton').addEventListener('click', () => authenticate('login'));
+    document.getElementById('recoveryForm').addEventListener('submit', event => {
+      event.preventDefault();
+      requestPasswordReset();
+    });
+    document.getElementById('newPasswordForm').addEventListener('submit', event => {
+      event.preventDefault();
+      saveNewPassword();
+    });
+    document.getElementById('openRecoveryButton').addEventListener('click', () => {
+      const loginEmail = document.getElementById('authEmail').value.trim();
+      document.getElementById('recoveryEmail').value = loginEmail;
+      setRecoveryMessage('');
+      recoveryDialog.showModal();
+      document.getElementById('recoveryEmail').focus();
+    });
+    for (const id of ['closeRecoveryButton', 'cancelRecoveryButton']) {
+      document.getElementById(id).addEventListener('click', () => recoveryDialog.close());
+    }
+    document.getElementById('signupForm').addEventListener('submit', event => {
+      event.preventDefault();
+      authenticate('signup');
+    });
+    document.getElementById('openSignupButton').addEventListener('click', () => {
+      setSignupMessage('');
+      document.getElementById('resendSignupButton').hidden = true;
+      signupDialog.showModal();
+      document.getElementById('signupEmail').focus();
+    });
+    for (const id of ['closeSignupButton', 'cancelSignupButton']) {
+      document.getElementById(id).addEventListener('click', () => signupDialog.close());
+    }
+    document.getElementById('toggleLoginPassword').addEventListener('click', () => togglePassword('authPassword', 'toggleLoginPassword'));
+    document.getElementById('toggleSignupPassword').addEventListener('click', () => togglePassword('signupPassword', 'toggleSignupPassword'));
+    document.getElementById('toggleConfirmPassword').addEventListener('click', () => togglePassword('signupPasswordConfirm', 'toggleConfirmPassword'));
+    document.getElementById('resendSignupButton').addEventListener('click', async () => {
+      const email = lastSignupEmail || document.getElementById('signupEmail').value.trim();
+      if (!email) return;
+      const button = document.getElementById('resendSignupButton');
+      button.disabled = true;
+      setSignupMessage('正在重新发送…');
+      try {
+        await supabaseRequest('resend', {type:'signup', email}, '', location.origin);
+        setSignupMessage('如果该邮箱仍需验证，新的验证邮件已提交发送。');
+      } catch (error) {
+        setSignupMessage(error.message || '发送失败，请稍后重试。', true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+    document.getElementById('logoutButton').addEventListener('click', logout);
+    document.getElementById('parseButton').addEventListener('click', parseScript);
+    document.getElementById('copyPromptButton').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(deepSeekFormatPrompt);
+        showToast('格式要求已复制，粘贴到 DeepSeek 对话中');
+      } catch {
+        const helper = document.createElement('textarea');
+        helper.value = deepSeekFormatPrompt;
+        helper.style.position = 'fixed';
+        helper.style.opacity = '0';
+        document.body.appendChild(helper);
+        helper.select();
+        const copied = document.execCommand('copy');
+        helper.remove();
+        showToast(copied ? '格式要求已复制，粘贴到 DeepSeek 对话中' : '复制失败，请检查浏览器剪贴板权限');
+      }
+    });
+    document.getElementById('clearButton').addEventListener('click', () => {
+      stopPlayback();
+      sourceText.value = '';
+      segments = [];
+      roleVoices = {};
+      renderAll();
+    });
+    sourceText.addEventListener('input', () => {
+      document.getElementById('charCount').textContent = `${sourceText.value.length.toLocaleString()} 字`;
+    });
+    document.getElementById('fileInput').addEventListener('change', async event => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      sourceText.value = await file.text();
+      document.getElementById('charCount').textContent = `${sourceText.value.length.toLocaleString()} 字`;
+      event.target.value = '';
+      showToast(`已导入 ${file.name}`);
+    });
+    document.getElementById('playAll').addEventListener('click', () => startQueue(allowedSegments()));
+    document.getElementById('stopButton').addEventListener('click', stopPlayback);
+    document.getElementById('pauseButton').addEventListener('click', () => {
+      if (!currentAudio) return;
+      if (currentAudio.paused) {
+        currentAudio.play();
+        document.getElementById('playState').textContent = '继续播放';
+      } else {
+        currentAudio.pause();
+        document.getElementById('playState').textContent = '已暂停';
+      }
+    });
+    document.getElementById('speedRange').addEventListener('input', event => {
+      document.getElementById('speedValue').textContent = `${Number(event.target.value).toFixed(2)}×`;
+      if (currentAudio) currentAudio.playbackRate = Number(event.target.value);
+    });
+    segmentList.addEventListener('click', event => {
+      const button = event.target.closest('[data-action="remove"]');
+      if (!button) {
+        const row = event.target.closest('.segment');
+        if (event.target.closest('.button-icon') || !row) return;
+        const item = segments[Number(row.dataset.index)];
+        if (item && !item.skip) startQueue([{...item, index:Number(row.dataset.index)}]);
+      }
+    });
+    const authPainting = document.getElementById('authPainting');
+    const authArtTitle = document.getElementById('authArtTitle');
+    const authArtCredit = document.getElementById('authArtCredit');
+    const authArtSlides = [
+      {
+        image: 'assets/still-life-phlox.webp',
+        fallback: 'assets/still-life-phlox.jpg',
+        title: '让故事里的每一种情绪，都有自己的声音。',
+        alt: 'Fanny Tiedjen-Bieber 的油画《静物与福禄考》：蓝色花瓶和多彩花朵',
+        credit: '《静物与福禄考》· Fanny Tiedjen-Bieber · 公共领域',
+        source: 'https://commons.wikimedia.org/wiki/File:Stillleben_mit_Flox_(Still_Life_with_Phlox).jpg',
+        position: '52% 47%'
+      },
+      {
+        image: 'assets/monet-flowers-fruit.webp',
+        fallback: 'assets/monet-flowers-fruit.jpg',
+        title: '把喜欢的剧情，变成听得见的陪伴。',
+        alt: 'Claude Monet 的油画《鲜花与水果静物》',
+        credit: '《鲜花与水果静物》· Claude Monet · CC0',
+        source: 'https://commons.wikimedia.org/wiki/File:Still_Life_with_Flowers_and_Fruit_by_Claude_Monet,_1869,_Getty_Center.JPG',
+        position: '50% 46%'
+      }
+    ];
+    let authArtIndex = 0;
+    window.setInterval(() => {
+      if (document.hidden) return;
+      const nextIndex = (authArtIndex + 1) % authArtSlides.length;
+      const next = authArtSlides[nextIndex];
+      const preload = new Image();
+      const transitionTo = image => {
+        authPainting.style.opacity = '0';
+        authArtTitle.style.opacity = '0';
+        window.setTimeout(() => {
+          authPainting.style.backgroundImage = `url("${image}"),url("${next.fallback}")`;
+          authPainting.style.backgroundPosition = next.position;
+          authPainting.setAttribute('aria-label', next.alt);
+          authArtTitle.textContent = next.title;
+          authArtCredit.href = next.source;
+          authArtCredit.textContent = next.credit;
+          authPainting.style.opacity = '1';
+          authArtTitle.style.opacity = '1';
+          authArtIndex = nextIndex;
+        }, 420);
+      };
+      preload.onload = () => transitionTo(next.image);
+      preload.onerror = () => {
+        const fallback = new Image();
+        fallback.onload = () => transitionTo(next.fallback);
+        fallback.src = next.fallback;
+      };
+      preload.src = next.image;
+    }, 9000);
+    initializeAuth();
+    refreshModelStatus();
+    setInterval(refreshModelStatus, 10000);
+  </script>
+</body>
+</html>
